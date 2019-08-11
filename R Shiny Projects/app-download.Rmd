@@ -1,0 +1,86 @@
+---
+title: "Shiny App for download files"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(shiny)
+
+# Define UI for data download app ----
+ui <- fluidPage(
+
+  # App title ----
+  titlePanel("Downloading Data"),
+
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+
+      # Input: Choose dataset ----
+      selectInput("dataset", "Choose a dataset:",
+                  choices = c("rock", "pressure", "cars")),
+
+      # Button
+      downloadButton("downloadData", "Download")
+
+    ),
+
+    # Main panel for displaying outputs ----
+    mainPanel(
+
+      tableOutput("table")
+
+    )
+
+  )
+)
+```
+
+```{r}
+# Define server logic to display and download selected file ----
+server <- function(input, output) {
+
+  # Reactive value for selected dataset ----
+  datasetInput <- reactive({
+    switch(input$dataset,
+           "rock" = rock,
+           "pressure" = pressure,
+           "cars" = cars)
+  })
+
+  # Table of selected dataset ----
+  output$table <- renderTable({
+    datasetInput()
+  })
+
+  # Downloadable csv of selected dataset ----
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste(input$dataset, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(datasetInput(), file, row.names = FALSE)
+    }
+  )
+
+}
+
+```
+
+```{r}
+# Create Shiny app ----
+shinyApp(ui, server)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
